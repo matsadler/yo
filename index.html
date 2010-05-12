@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+	<title>YO! Sushi Bill Calculator</title>
+	<link rel="apple-touch-icon" href="yo.png"/>
+	<meta name="viewport" content="width=device-width;
+								   initial-scale=1.0;
+								   maximum-scale=1.0;
+								   user-scalable=0;"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<!-- Copyright 2008-2010 Mat Sadler All rights reserved. -->
+	<style type="text/css">
+		body {
+			background-color: #fff;
+			margin: 0;
+			font-family: Helvetica;
+			color: #666;
+			overflow: hidden;
+			-webkit-text-size-adjust: none;
+			height: 416px;
+		}
+		.title {
+			color: #666;
+			text-decoration: none;
+			line-height: 1.5em;
+			margin-left: 5px;
+		}
+		#reset {
+			line-height: 1.5em;
+			float: right;
+			margin-right: 10px;
+		}
+		.title span {
+			color: #FF4C0B;
+		}
+		.platesWrapper {
+			width: 190px;
+			height: 315px;
+			margin: 14px 0 10px 10px;
+			float: left;
+			clear: right;
+		}
+		.platesColumn {
+			width: 94px;
+			margin-right: -1px;
+			float: left;
+			border-left: 1px solid #d8d8d8;
+			border-right: 1px solid #d8d8d8;
+		}
+		.plate {
+			width: 74px;
+			height: 74px;
+			margin: 0 2px 15px 2px;
+			border: 8px solid black;
+			-webkit-border-radius: 45px;
+		}
+		.plate span {
+			font-size: 1.3em;
+			font-weight: bold;
+			color: white;
+			background-color: red;
+			padding: 0.2em;
+			-webkit-border-radius: 0.4em;
+			border-right: 1px solid rgba(0,0,0,0.7);
+			border-bottom: 1px solid rgba(0,0,0,0.7);
+			margin: 0 0 0 -3px;
+		}
+		
+		#green {border-color: #A6D629;}
+		#blue {border-color: #1A95B9;}
+		#purple {border-color: #3E1485;}
+		#orange {border-color: #FF4C0B;}
+		#pink {border-color: #E51085;}
+		#grey {border-color: #86A198;}
+		
+		.drinksWrapper {
+			height: 315px;
+			float: left;
+			width: 90px;
+			padding: 0 0 0 20px;
+			margin: 14px 0 10px 0;
+			list-style: none;
+			font-size: 0.8em;
+		}
+		.drink {
+			padding: 0.7em 0;
+		}
+		.drink:before {
+			content: "–";
+			margin-left: -10px;
+		}
+		.drink span:before {
+			content: " x";
+		}
+		#total {
+			margin: auto;
+			text-align: center;
+			font-size: 2.9em;
+		}
+		#legal {
+			color: #bbb;
+			font-size: 0.7em;
+			padding: 10px;
+			width: 300px;
+		}
+		#legal a {
+			color: #bbb;
+		}
+	</style>
+	<script type="text/javascript">
+	function Bill(prices) {
+		this.total = 0;
+		this.items = {};
+		this.prices = prices;
+	}
+	
+	Bill.prototype.add = function (item) {
+		if (typeof(this.items[item]) === "number" && this.items[item] > 0) {
+			this.items[item] += 1;
+		}
+		else {
+			this.items[item] = 1;
+		}
+		this.total = this.calculateTotal();
+	};
+	
+	Bill.prototype.remove = function (item) {
+		if (typeof(this.items[item]) === "number" && this.items[item] >= 0) {
+			this.items[item] -= 1;
+		}
+		else {
+			this.items[item] = 0;
+		}
+		this.total = this.calculateTotal();
+	};
+	
+	Bill.prototype.clear = function () {
+		this.items = {};
+		this.total = this.calculateTotal();
+	};
+	
+	Bill.prototype.calculateTotal = function () {
+		var total = 0, item, i;
+		for (item in this.items) {
+			if (this.items.hasOwnProperty(item)) {
+				for (i = 0; i < this.items[item]; i += 1) {
+					total += this.prices[item];
+				}
+			}
+		}
+		return total;
+	};
+	
+	Bill.prototype.formatTotal = function () {
+		return "£" + this.total.toFixed(2);
+	};
+	
+	window.addEventListener("load", function () {
+		if (navigator.userAgent.indexOf("iPhone") != -1) {
+			setTimeout(function () {
+				window.scrollTo(0, 1);
+			}, 0);
+		}
+		var prices = {
+						green: 1.7,
+						blue: 2.2,
+						purple: 2.8,
+						orange: 3.3,
+						pink: 3.8,
+						grey: 5,
+						miso: 1.75,
+						water: 1,
+						greentea: 1.25,
+						coke: 1.5,
+						lemonade: 1.5,
+						icetea: 2.5,
+						juice: 2.3,
+						asahis: 3.35,
+						asahil: 4.65,
+						sapporo: 5.9},
+			bill = new Bill(prices),
+			total = document.getElementById("total"),
+			addClickListener = function (item) {
+				var element = document.getElementById(item);
+				element.addEventListener("click", function () {
+					if (!element.getElementsByTagName("span").length) {
+						element.innerHTML += "<span class=\"count\"></span>";
+					}
+					bill.add(item);
+					element.getElementsByTagName("span")[0].innerHTML = bill.items[item];
+					total.innerHTML = bill.formatTotal();
+				});
+			},
+			reset = document.getElementById("reset"),
+			item;
+			
+		for (item in prices) {
+			if (prices.hasOwnProperty(item)) {
+				addClickListener(item);
+			}
+		}
+		
+		reset.addEventListener("click", function () {
+			var spans = document.getElementsByTagName("span"),
+				garbage = [],
+				element, i;
+				
+			for (i = 0; i < spans.length; i += 1) {
+				if (spans[i].className === "count") {
+					garbage.push(spans[i]);
+				}
+			}
+			
+			while (garbage.length > 0) {
+				element = garbage.pop();
+				element.parentNode.removeChild(element);
+			}
+			
+			bill.clear();
+			total.innerHTML = bill.formatTotal();
+		});
+	});
+	</script>
+</head>
+<body>
+	<a href="http://www.yosushi.com/" target="_blank" class="title">
+		<span>YO!</span> Sushi
+	</a>
+	<span id="reset">clear</span>
+	<div class="platesWrapper">
+		<div class="platesColumn">
+			<div class="plate" id="green"></div>
+			<div class="plate" id="purple"></div>
+			<div class="plate" id="pink"></div>
+		</div>
+		<div class="platesColumn">
+			<div class="plate" id="blue"></div>
+			<div class="plate" id="orange"></div>
+			<div class="plate" id="grey"></div>
+		</div>
+	</div>
+	<ul class="drinksWrapper">
+		<li class="drink" id="miso">Miso</li>
+		<li class="drink" id="water">Water</li>
+		<li class="drink" id="greentea">Green Tea</li>
+		<li class="drink" id="coke">Coke</li>
+		<li class="drink" id="lemonade">Lemonade</li>
+		<li class="drink" id="juice">Juice</li>
+		<li class="drink" id="icetea">Ice Tea</li>
+		<li class="drink" id="asahis">Asahi 330ml</li>
+		<li class="drink" id="asahil">Asahi 500ml</li>
+		<li class="drink" id="sapporo">Sapporo</li>
+	</ul>
+	<div id="total">£0.00</div>
+	<div id="legal">
+		Not affiliated with
+		<a href="http://www.yosushi.com/" target="_blank">YO! Sushi</a>.
+		Prices correct as of 12/05/10. We take no responsibility for calculating
+		your bill correctly.
+	</div>
+</body>
+</html>
